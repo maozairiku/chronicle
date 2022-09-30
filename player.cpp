@@ -47,29 +47,27 @@
 #define JANIM_PATTERN_NUM			(JTEXTURE_PATTERN_DIVIDE_X*JTEXTURE_PATTERN_DIVIDE_Y)	// アニメーションパターン数
 
 // attack
-#define ATEXTURE_PATTERN_DIVIDE_X	(4)		// アニメパターンのテクスチャ内分割数（X)
-#define ATEXTURE_PATTERN_DIVIDE_Y	(2)		// アニメパターンのテクスチャ内分割数（Y)
-#define AANIM_PATTERN_NUM			(8)		// アニメーションパターン数
-
+#define ATEXTURE_PATTERN_DIVIDE_X	(6)		// アニメパターンのテクスチャ内分割数（X)
+#define ATEXTURE_PATTERN_DIVIDE_Y	(1)		// アニメパターンのテクスチャ内分割数（Y)
+#define AANIM_PATTERN_NUM			(6)		// アニメーションパターン数
 
 // プレイヤーの画面内配置座標
-#define PLAYER_DISP_X				(SCREEN_WIDTH/2)
-#define PLAYER_DISP_Y				(SCREEN_HEIGHT/2)
+#define PLAYER_DISP_X				(SCREEN_WIDTH / 2)
+#define PLAYER_DISP_Y				(SCREEN_HEIGHT / 2)
 
 // ジャンプ処理
-#define	PLAYER_JUMP_CNT_MAX			(24)		// 24フレームJUMP_MAX
-#define	PLAYER_JUMP_Y_MAX			(300.0f)	// ジャンプの高さ
+#define	PLAYER_JUMP_CNT_MAX			(24)	// 24フレームJUMP_MAX
+#define	PLAYER_JUMP_Y_MAX			(300)	// ジャンプの高さ
 
-// 2段ジャンプ処理
-#define	PLAYER_JUMP_DCNT_MAX		(30)		// 更に30フレームで着地する
-#define	PLAYER_JUMP_H_MAX			(300.0f)	// ジャンプの高さ
+// attack処理
+#define PLAYER_ATTACK_CNT_MAX		(24)	// フレームATTACK_MAX
 
 // dialogue box size
 #define MESSAGE_BOX_WIDTH			(100)
 #define	MESSAGE_BOX_HEIGHT			(400)
 
 // blood gauge
-#define GAUGE_WIDTH					(650)		// gauge size
+#define GAUGE_WIDTH					(650)	// gauge size
 #define GAUGE_HEIGHT				(165)			
 
 //*****************************************************************************
@@ -166,24 +164,22 @@ HRESULT InitPlayer(void)
 		g_Player[i].countAnim = 0;
 		g_Player[i].patternAnim = 0;
 
-		// moning part
+		// moving
 		g_Player[i].move = XMFLOAT3(10.0f, 0.0f, 0.0f);		// 移動量
-
 		g_Player[i].dir = CHAR_DIR_DOWN;					// 下向きにしとくか
 		g_Player[i].moving = FALSE;							// 移動中フラグ
 		g_Player[i].patternAnim = g_Player[i].dir * TEXTURE_PATTERN_DIVIDE_X;
 
-		// action part
+		// jump
 		g_Player[i].jump = FALSE;
 		g_Player[i].jumpCnt = 0;
 		g_Player[i].jumpY = 30.0f;
 		g_Player[i].jumpYMax = PLAYER_JUMP_Y_MAX;
 
-		// 2段ジャンプの初期化
-		g_Player[i].jumpD = FALSE;
-		g_Player[i].jumpDCnt = 0;
-		g_Player[i].jumpH = 30.0f;
-		g_Player[i].jumpDMax = PLAYER_JUMP_H_MAX;
+		// attack
+		g_Player[i].atkuse = FALSE;
+		g_Player[i].atkCnt = 0;
+
 
 		// 分身用
 		g_Player[i].dash = FALSE;
@@ -208,8 +204,6 @@ HRESULT InitPlayer(void)
 			g_Player[i].pu = g_Player[i].pos.y - (TEXTURE_HEIGHT / 2);
 			g_Player[i].pd = g_Player[i].pos.y + (TEXTURE_HEIGHT / 2);
 			
-			g_Player[i].conbox = FALSE;
-
 			g_Player[i].pos = XMFLOAT3(200.0f, 200.0f, 0.0f);	// 中心点から表示
 			g_Player[i].rot = XMFLOAT3(0.0f, 0.0f, 0.0f);
 			g_Player[i].w = TEXTURE_WIDTH;
@@ -227,8 +221,6 @@ HRESULT InitPlayer(void)
 			g_Player[i].pl = g_Player[i].pos.x - (TEXTURE_WIDTH / 2);
 			g_Player[i].pu = g_Player[i].pos.y - (TEXTURE_HEIGHT / 2);
 			g_Player[i].pd = g_Player[i].pos.y + (TEXTURE_HEIGHT / 2);
-
-			g_Player[i].conbox = FALSE;
 
 			g_Player[i].pos = XMFLOAT3(200.0f, 1350.0f, 0.0f);	// 中心点から表示
 			g_Player[i].rot = XMFLOAT3(0.0f, 0.0f, 0.0f);
@@ -248,8 +240,6 @@ HRESULT InitPlayer(void)
 			g_Player[i].pu = g_Player[i].pos.y - (TEXTURE_HEIGHT / 2);
 			g_Player[i].pd = g_Player[i].pos.y + (TEXTURE_HEIGHT / 2);
 
-			g_Player[i].conbox = FALSE;
-
 			g_Player[i].pos = XMFLOAT3(300.0f, 300.0f, 0.0f);	// 中心点から表示
 			g_Player[i].rot = XMFLOAT3(0.0f, 0.0f, 0.0f);
 			g_Player[i].w = TEXTURE_WIDTH;
@@ -267,8 +257,6 @@ HRESULT InitPlayer(void)
 			g_Player[i].pl = g_Player[i].pos.x - (TEXTURE_WIDTH / 2);
 			g_Player[i].pu = g_Player[i].pos.y - (TEXTURE_HEIGHT / 2);
 			g_Player[i].pd = g_Player[i].pos.y + (TEXTURE_HEIGHT / 2);
-
-			g_Player[i].conbox = FALSE;
 
 			g_Player[i].pos = XMFLOAT3(400.0f, 400.0f, 0.0f);	// 中心点から表示
 			g_Player[i].rot = XMFLOAT3(0.0f, 0.0f, 0.0f);
@@ -398,20 +386,6 @@ void UpdatePlayer(void)
 					speed *= 4;
 					g_Player[i].dash = TRUE;
 				}
-
-				//if (GetKeyboardPress(DIK_DOWN))
-				//{
-				//	g_Player[i].pos.y += speed;
-				//	g_Player[i].dir = CHAR_DIR_DOWN;
-				//	g_Player[i].moving = TRUE;
-
-				//}
-				//else if (GetKeyboardPress(DIK_UP))
-				//{
-				//	g_Player[i].pos.y -= speed;
-				//	g_Player[i].dir = CHAR_DIR_UP;
-				//	g_Player[i].moving = TRUE;
-				//}
 
 				if (GetKeyboardPress(DIK_RIGHT))
 				{
@@ -595,6 +569,15 @@ void UpdatePlayer(void)
 					g_Player[i].jumpY = 0.0f;
 					g_Player[i].patternAnim = 0;
 					g_tamp = g_Player[i].pos.y;
+				}
+
+				// attack (做完整個攻擊動作後才可以在攻擊和上方jump的概念相同)
+				if ((g_Player[i].attack == FALSE) && GetKeyboardTrigger(DIK_SPACE))
+				{
+					g_Player[i].attack = TRUE;
+					g_Player[i].atkCnt = 0;
+					g_Player[i].patternAnim = 0;
+
 				}
 
 				// MAP外チェック
@@ -971,6 +954,7 @@ void DrawPlayer(void)
 				{
 					g_Player[i].patternAnim = 0;
 				}
+
 				GetDeviceContext()->PSSetShaderResources(0, 1, &g_Texture[0]);
 
 				//プレイヤーの位置やテクスチャー座標を反映
@@ -986,8 +970,52 @@ void DrawPlayer(void)
 					// アニメーション用
 					float tw = 1.0f / SPRITE_DIVIDE_X;	// テクスチャの幅
 					float th = 1.0f / SPRITE_DIVIDE_Y;	// テクスチャの高さ
-					float tx = (float)((g_Player[i].patternAnim) % 7) * tw;	// テクスチャの左上X座標
+					float tx = (float)((g_Player[i].patternAnim) % 7) * tw;	// テクスチャの左上X座標(原始圖片因為有分行,以X座標來看是0~7和最後為0,為了循環用%來讓首張和末張餘數為0)
 					float ty = (float)((g_Player[i].patternAnim + 14) / 7) * th;	// テクスチャの左上Y座標
+
+					// draw without using math
+					//switch (g_Player[i].patternAnim)
+					//{
+					//case 0:
+					//	tx = 0.0f * tw;
+					//	ty = 2.0f * th;
+					//	break;
+
+					//case 1:
+					//	tx = 1.0f * tw;
+					//	ty = 2.0f * th;
+					//	break;
+
+					//case 2:
+					//	tx = 2.0f * tw;
+					//	ty = 2.0f * th;
+					//	break;
+
+					//case 3:
+					//	tx = 3.0f * tw;
+					//	ty = 2.0f * th;
+					//	break;
+
+					//case 4:
+					//	tx = 4.0f * tw;
+					//	ty = 2.0f * th;
+					//	break;
+
+					//case 5:
+					//	tx = 5.0f * tw;
+					//	ty = 2.0f * th;
+					//	break;
+
+					//case 6:
+					//	tx = 6.0f * tw;
+					//	ty = 2.0f * th;
+					//	break;
+
+					//case 7:
+					//	tx = 0.0f * tw;
+					//	ty = 3.0f * th;
+					//	break;
+					//}
 
 					// １枚のポリゴンの頂点とテクスチャ座標を設定
 					SetSpriteColorRotation(g_VertexBuffer, px, py, pw, ph, tx, ty, tw, th,
@@ -1013,6 +1041,29 @@ void DrawPlayer(void)
 					// ポリゴン描画
 					GetDeviceContext()->Draw(4, 0);
 				}
+			}
+
+			// attack
+			if (g_Player[i].attack == TRUE)
+			{
+				GetDeviceContext()->PSSetShaderResources(0, 1, &g_Texture[0]);
+
+				//プレイヤーの位置やテクスチャー座標を反映
+				float px = g_Player[i].pos.x - bg->pos.x;	// プレイヤーの表示位置X
+				float py = g_Player[i].pos.y - bg->pos.y;	// プレイヤーの表示位置Y
+				float pw = g_Player[i].w;		// プレイヤーの表示幅
+				float ph = g_Player[i].h;		// プレイヤーの表示高さ
+
+
+				if (g_Player[i].dir == CHAR_DIR_RIGHT)
+				{
+					// アニメーション用
+					float tw = 1.0f / ATEXTURE_PATTERN_DIVIDE_X;	// テクスチャの幅
+					float th = 1.0f / ATEXTURE_PATTERN_DIVIDE_Y;	// テクスチャの高さ
+					float tx = (float)(5 + g_Player[i].patternAnim % 7) * tw;		// テクスチャの左上X座標
+					float ty = (float)((g_Player[i].patternAnim + 14) / 7) * th;	// テクスチャの左上Y座標
+				}
+
 			}
 
 			// draw item message box message

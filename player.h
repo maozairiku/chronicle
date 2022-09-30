@@ -43,7 +43,6 @@ struct PLAYER
 	XMFLOAT3    cPos;			// 当たり範囲の座標
 	XMFLOAT3	rot;			// ポリゴンの回転量
 	BOOL		use;			// true:使っている  false:未使用
-	BOOL		atkuse;			// atk flag
 	float		w, h;			// 幅と高さ
 	float       cw, ch;			// 当たり範囲の幅と高さ
 	float		countAnim;		// アニメーションカウント
@@ -53,7 +52,11 @@ struct PLAYER
 	
 	int			dir;			// 向き（0:上 1:右 2:下 3:左）
 	BOOL		moving;			// 移動中フラグ
-	BOOL		onGround;		// 地面についているかどうか
+	BOOL		onGround;		// 地面についているか
+
+	BOOL		atkuse;			// atk flag
+	BOOL		attack;			// attacking check
+	BOOL		atkCnt;			// attack count
 
 	BOOL		dash;			// ダッシュ中フラグ
 	XMFLOAT3	move;			// 移動速度
@@ -64,19 +67,12 @@ struct PLAYER
 	int			jumpCnt;		// ジャンプ中のカウント
 	float		jumpYMax;		// ジャンプの高さ最大値
 
-	BOOL		jumpD;			// 2段ジャンプフラグ
-	float		jumpH;			// 2段ジャンプの高さ
-	int			jumpDCnt;		// 2段ジャンプ中のカウント
-	float		jumpDMax;		// 2段ジャンプの高さ最大値
-
 	int			hp;				// HP
 	int			lucky;
 	int			potion;			// recover item1
 	BOOL		penough;		// item1 enough
 	int			apple;			// recover item2
 	BOOL		aenough;		// item  enough
-
-	int			conbox;			// conversation window
 };
 
 
